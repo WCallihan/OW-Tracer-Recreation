@@ -14,11 +14,11 @@ TagManager:
   - 
   - 
   - Ground
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Wall
+  - Player
+  - Teammate
+  - Enemy
+  - Blinking
   - 
   - 
   - 

@@ -51,6 +51,7 @@ public class TracerMovement : MonoBehaviour {
 
         //simulate gravity
         velocity.y += gravity * Time.deltaTime;
+        //move the character
         characterControler.Move(velocity * Time.deltaTime);
     }
 }
