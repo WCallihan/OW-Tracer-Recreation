@@ -490,7 +490,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerBody: {fileID: 3096262038924190597}
-  mouseSensitivity: 400
+  mouseSensitivity: 1.5
 --- !u!20 &3096262038733655762
 Camera:
   m_ObjectHideFlags: 0
@@ -553,6 +553,7 @@ GameObject:
   - component: {fileID: 3096262038924190597}
   - component: {fileID: 2859639107685431329}
   - component: {fileID: 4057081929164428702}
+  - component: {fileID: 2513938989521860570}
   - component: {fileID: 8312346278781689450}
   - component: {fileID: 3096262038924190594}
   - component: {fileID: 3096262038924190598}
@@ -614,9 +615,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blinkDistance: 20
-  blinkDuration: 0.05
+  blinkDuration: 0.1
   blinkCooldown: 3
   blinkSFX: {fileID: 0}
+--- !u!114 &2513938989521860570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096262038924190595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07f21ac75254cdc40b4f1c28e920cd6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  recallDuration: 1.25
+  recallCooldown: 12
+  maxDataPoints: 30
+  recallSFX: {fileID: 0}
 --- !u!114 &8312346278781689450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -637,6 +654,14 @@ MonoBehaviour:
   blinkSymbol: {fileID: 0}
   blinksRemainingCircle: {fileID: 0}
   blinksRemainingText: {fileID: 0}
+  shiftPanel: {fileID: 0}
+  shiftText: {fileID: 0}
+  recallPanel: {fileID: 0}
+  recallSymbol: {fileID: 0}
+  ePanel: {fileID: 0}
+  eText: {fileID: 0}
+  recallCountdown: {fileID: 0}
+  recallSlider: {fileID: 0}
 --- !u!143 &3096262038924190594
 CharacterController:
   m_ObjectHideFlags: 0

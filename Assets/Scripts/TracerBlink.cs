@@ -6,8 +6,8 @@ using UnityEngine;
 public class TracerBlink : MonoBehaviour {
 
 	[SerializeField] private float blinkDistance;
-	[SerializeField] private float blinkDuration = 0.05f;
-	[SerializeField] private float blinkCooldown = 3f;
+	[SerializeField] private float blinkDuration;
+	[SerializeField] private float blinkCooldown;
 	[SerializeField] private AudioClip blinkSFX;
 
 	private TracerHUD tracerHUD;
@@ -15,14 +15,17 @@ public class TracerBlink : MonoBehaviour {
 	private AudioSource audioSource;
 
 	private bool isBlinking = false;
-	private float[] blinkCooldowns;
+	private float[] blinkTimers = new float[] { 0, 0, 0 };
 	private bool canBlink = true;
+	private bool isLocked = false;
 
 	void Awake() {
 		tracerHUD = GetComponent<TracerHUD>();
 		characterController = GetComponent<CharacterController>();
 		audioSource = GetComponent<AudioSource>();
-		blinkCooldowns = new float[] { 0, 0, 0 };
+
+		//add SetLock to the recallAction event
+		TracerRecall.RecallAction += SetLock;
 	}
 
 	void Update() {
@@ -38,22 +41,23 @@ public class TracerBlink : MonoBehaviour {
 		}
 
 		//countdown the blink cooldowns and check if the player is able to blink
-		for(int i = 0; i < blinkCooldowns.Length; i++) {                //iterate through each blink cooldown
-			float newCooldownTime = blinkCooldowns[i] - Time.deltaTime; //decrement each cooldown and set it to new variable
-			if((blinkCooldowns[i] > 0) && (newCooldownTime <= 0)) {     //if the cooldown is now 0 or lower, then it will allow the player to blink
+		for(int i = 0; i < blinkTimers.Length; i++) {                //iterate through each blink cooldown
+			float newCooldownTime = blinkTimers[i] - Time.deltaTime; //decrement each cooldown and set it to new variable
+			if((blinkTimers[i] > 0) && (newCooldownTime <= 0)) {     //if the cooldown is now 0 or lower, then it will allow the player to blink
 				canBlink = true;                                        //set can blink to true (for now)
 				tracerHUD.GiveBlink();									//call the HUD script to give a blink to the UI
-			} else if(blinkCooldowns[i] <= 0) {                         //if the cooldown was already 0 or lower, then set can blink to true
+			} else if(blinkTimers[i] <= 0) {                         //if the cooldown was already 0 or lower, then set can blink to true
 				canBlink = true;
 			}
-			blinkCooldowns[i] = newCooldownTime;                        //set the cooldown to the new time (regardless of if it is 0 or lower)
+			blinkTimers[i] = newCooldownTime;                        //set the cooldown to the new time (regardless of if it is 0 or lower)
 		}
-		//if current blinking, then you can't blink
-		if(isBlinking) {
+
+		//if current blinking or blinking is locked, then you can't blink
+		if(isBlinking || isLocked) {
 			canBlink = false;
 		}
 
-		//if Shift or Right Click is pressed and the player is not blinking, then blink
+		//if Shift or Right Click is pressed and the player is able, then blink
 		if((Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.Mouse1)) && canBlink) {            
 			StartCoroutine(Blink(blinkDirection, blinkDistance, blinkDuration));
 		}
@@ -66,9 +70,9 @@ public class TracerBlink : MonoBehaviour {
 		audioSource.PlayOneShot(blinkSFX);                      //play the blinking sound effect
 
 		//look for the first cooldown that is zero or less and reset it
-		for(int i = 0; i < blinkCooldowns.Length; i++) {
-			if(blinkCooldowns[i] <= 0) {
-				blinkCooldowns[i] = blinkCooldown;
+		for(int i = 0; i < blinkTimers.Length; i++) {
+			if(blinkTimers[i] <= 0) {
+				blinkTimers[i] = blinkCooldown;
 				break;
 			}
 		}
@@ -88,5 +92,9 @@ public class TracerBlink : MonoBehaviour {
 
 		gameObject.layer = LayerMask.NameToLayer("Player");     //switch the layer back so that Tracer can no longer go through enemies
 		isBlinking = false;                                     //set blinking flag to false so that Tracer can blink again
+	}
+
+	public void SetLock(bool locked) {
+		isLocked = locked;
 	}
 }

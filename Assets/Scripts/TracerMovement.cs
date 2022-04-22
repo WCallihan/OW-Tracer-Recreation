@@ -17,10 +17,14 @@ public class TracerMovement : MonoBehaviour {
 
     private Vector3 velocity;
     private bool isGrounded;
+	private bool isLocked = false;
 
     void Awake() {
         characterControler = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
+
+		//add SetLock to the recallAction event
+		TracerRecall.RecallAction += SetLock;
     }
 
     void Update() {
@@ -30,28 +34,37 @@ public class TracerMovement : MonoBehaviour {
             velocity.y = -2f; //just makes sure the player sticks to the ground
         }
 
-        //take in inputs
-        float inputX = Input.GetAxis("Horizontal");
-        float inputZ = Input.GetAxis("Vertical");
+		//if locked, do nothing
+		if(isLocked) {
+			return;
+		}
 
-        //use character controller to move
-        Vector3 moveVector = (transform.right * inputX) + (transform.forward * inputZ);
-        if(moveVector.magnitude > 1) {
-            moveVector /= moveVector.magnitude; //normalizes magnitude so the character doesn't move faster when moving diagonally
-        }
-        characterControler.Move(moveVector * speed * Time.deltaTime);
+		//take in inputs
+		float inputX = Input.GetAxis("Horizontal");
+		float inputZ = Input.GetAxis("Vertical");
 
-        //jump
-        if(Input.GetButtonDown("Jump") && isGrounded) {
-            //jump upwards
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            //play jump sound effect
-            audioSource.PlayOneShot(jumpSound);
-        }
+		//use character controller to move
+		Vector3 moveVector = (transform.right * inputX) + (transform.forward * inputZ);
+		if(moveVector.magnitude > 1) {
+			moveVector /= moveVector.magnitude; //normalizes magnitude so the character doesn't move faster when moving diagonally
+		}
+		characterControler.Move(moveVector * speed * Time.deltaTime);
+		
+		//jump
+		if(Input.GetButtonDown("Jump") && isGrounded) {
+			//jump upwards
+			velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+			//play jump sound effect
+			audioSource.PlayOneShot(jumpSound);
+		}
 
-        //simulate gravity
-        velocity.y += gravity * Time.deltaTime;
-        //move the character
-        characterControler.Move(velocity * Time.deltaTime);
+		//simulate gravity
+		velocity.y += gravity * Time.deltaTime;
+		//move the character
+		characterControler.Move(velocity * Time.deltaTime);
     }
+
+	public void SetLock(bool locked) {
+		isLocked = locked;
+	}
 }

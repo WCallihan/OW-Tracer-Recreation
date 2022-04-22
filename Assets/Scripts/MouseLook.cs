@@ -5,23 +5,43 @@ using UnityEngine;
 public class MouseLook : MonoBehaviour {
 
 	[SerializeField] Transform playerBody;
-	[SerializeField] private float mouseSensitivity = 100f;
+	[SerializeField] private float mouseSensitivity;
 
-	private float xRotation = 0f;
+	private float cameraXRotation = 0f;
+	private bool isLocked = false;
 
 	void Awake() {
-		Cursor.lockState = CursorLockMode.Locked;   //lock cursor
-		Cursor.visible = false;						//make cursor invisible
+		//lock cursor
+		Cursor.lockState = CursorLockMode.Locked;
+
+		//add SetLock to the recallAction event
+		TracerRecall.RecallAction += SetLock;
 	}
 
 	void Update() {
-		float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-		float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+		//if locked, do nothing
+		if(isLocked) {
+			return;
+		}
 
-		xRotation -= mouseY;
-		xRotation = Mathf.Clamp(xRotation, -90f, 90f); //clamps the up and down rotation between -90 and 90 degrees
+		//get the input from the mouse
+		float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+		float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-		transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f); //looks up and down
-		playerBody.Rotate(Vector3.up * mouseX); //rotates the entire player
+		//gets the rotation of the camera
+		cameraXRotation -= mouseY;
+			
+		//rotate the camera and player
+		if((cameraXRotation >= -90f) && (cameraXRotation <= 90f)) { //essentially clamp the x rotation between -90 and 90 degrees
+			transform.Rotate(-mouseY, 0, 0);						//rotate the camera up and down
+		} else {
+			cameraXRotation += mouseY;								//undo the adding of the mouse Y delta
+		}
+		playerBody.Rotate(Vector3.up * mouseX);                     //rotate the entire play horizontally
+	}
+
+	//sets whether the player can move affect the camera or character rotation at all
+	public void SetLock(bool locked) {
+		isLocked = locked;
 	}
 }
