@@ -14,7 +14,7 @@ public class MouseLook : MonoBehaviour {
 		//lock cursor
 		Cursor.lockState = CursorLockMode.Locked;
 
-		//add SetLock to the recallAction event
+		//add SetLock to the RecallAction event
 		TracerRecall.RecallAction += SetLock;
 	}
 

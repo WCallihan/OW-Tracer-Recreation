@@ -22,6 +22,12 @@ public class TracerHUD : MonoBehaviour {
 	[SerializeField] private Text recallCountdown;
 	[SerializeField] private Slider recallSlider;
 
+	[Header("Health Settings")]
+	[SerializeField] private Slider healthBar;
+	[SerializeField] private Text healthText;
+
+	private TracerAudioManager tracerAudio;
+
 	private int blinksRemaining = 3;
 	private float recallCooldown;
 	private float recallTimer = 12;
@@ -35,7 +41,9 @@ public class TracerHUD : MonoBehaviour {
 	private readonly float fadedOutAlpha = 0.39f;
 
 	void Awake() {
-		//add UpdateRecall to the recallAction event
+		tracerAudio = GetComponent<TracerAudioManager>();
+
+		//add UpdateRecall to the RecallAction event
 		TracerRecall.RecallAction += UpdateRecall;
 	}
 
@@ -83,6 +91,8 @@ public class TracerHUD : MonoBehaviour {
 				break;
 			}
 		}
+		//use the audio manager script to play blink gaining sound effect
+		tracerAudio.GainBlink();
 		//update the blinks reamining and the text
 		blinksRemaining += 1;
 		blinksRemainingText.text = blinksRemaining.ToString();
@@ -108,7 +118,7 @@ public class TracerHUD : MonoBehaviour {
 
 	// -- RECALL --
 
-	//activated by the recallAction event to signal Tracer beginning or ending the Recall ability
+	//activated by the RecallAction event to signal Tracer beginning or ending the Recall ability
 	private void UpdateRecall(bool recalling) {
 		if(recalling) {
 			BeginRecall();
@@ -162,7 +172,9 @@ public class TracerHUD : MonoBehaviour {
 	}
 
 	//called by TracerRecall to update the UI on when the cooldown for Recall has ended
-	public void GiveRecall() {
+	public void GainRecall() {
+		//use the audio manager script to play gaining recall sound effect
+		tracerAudio.GainRecall();
 		//change the panel to white and filled
 		recallPanel.color = myWhite;
 		recallPanel.fillCenter = true;
@@ -176,5 +188,13 @@ public class TracerHUD : MonoBehaviour {
 	//called by TracerRecall on awake to update this script on the recall cooldown to maintain consistency
 	public void SetRecallCooldown(float cooldown) {
 		recallCooldown = cooldown;
+	}
+
+	// -- HEALTH --
+	
+	//called by TracerHealth when she gets hit by the enemy training bot
+	public void UpdateHealthBar(int currentHealth) {
+		healthBar.value = currentHealth;
+		healthText.text = currentHealth.ToString() + " / 150";
 	}
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-[RequireComponent(typeof(CharacterController))]
 public class TracerRecall : MonoBehaviour {
 
 	public static event Action<bool> RecallAction; //create event action with one bool parameter
@@ -11,10 +10,10 @@ public class TracerRecall : MonoBehaviour {
 	[SerializeField] private float recallDuration;
 	[SerializeField] private float recallCooldown;
 	[SerializeField] private float maxDataPoints = 50f;
-	[SerializeField] private AudioClip recallSFX;
+	[SerializeField] private GameObject recallVFXPrefab; 
 
 	private TracerHUD tracerHUD;
-	private AudioSource audioSource;
+	private TracerAudioManager tracerAudio;
 	private MouseLook mouseLook;
 
 	private List<RecallData> recallData = new List<RecallData>(); //create list so that the length can change
@@ -34,7 +33,7 @@ public class TracerRecall : MonoBehaviour {
 
 	void Awake() {
 		tracerHUD = GetComponent<TracerHUD>();
-		audioSource = GetComponent<AudioSource>();
+		tracerAudio = GetComponent<TracerAudioManager>();
 		mouseLook = GetComponentInChildren<MouseLook>();
 
 		//establish the interval at which the character gets recall data based on the max list size
@@ -63,11 +62,13 @@ public class TracerRecall : MonoBehaviour {
 		}
 
 		//countdown the recall timer and set if the player can recall
-		recallTimer -= Time.deltaTime;
-		if(!isRecalling && recallTimer <= 0) {
+		float newCooldownTime = recallTimer - Time.deltaTime;
+		if((recallTimer > 0) && (newCooldownTime <= 0)) {
 			canRecall = true;
-			tracerHUD.GiveRecall(); //call the HUD script to update the UI
-		} else {
+			tracerHUD.GainRecall(); //call the HUD script to update the UI
+		}
+		recallTimer = newCooldownTime;
+		if(isRecalling) {
 			canRecall = false;
 		}
 
@@ -89,10 +90,11 @@ public class TracerRecall : MonoBehaviour {
 
 	//used to activate Tracer's Recall ability, sending her backwards on the path she has been on in the last 3 seconds
 	private IEnumerator Recall(float duration) {
-		isRecalling = true;										//set recall flag to true
-		RecallAction(true);                                     //invoke the recallAction event with a value of true, telling other scripts that the Recall is starting
-		gameObject.layer = LayerMask.NameToLayer("Blinking");	//change layer so that Tracer can pass through enemies but not walls
-		audioSource.PlayOneShot(recallSFX);						//play recall sound effect
+		isRecalling = true;														//set recall flag to true
+		RecallAction(true);														//invoke the recallAction event with a value of true, telling other scripts that the Recall is starting
+		gameObject.layer = LayerMask.NameToLayer("Blinking");                   //change layer so that Tracer can pass through enemies but not walls
+		tracerAudio.Recall();													//use the audio manager script to play recall sound effect
+		Instantiate(recallVFXPrefab, transform.position, transform.rotation);	//spawn a recall effect at Tracer's location
 
 		//get the amount of time that the character will spend getting to each stored point
 		float secondsBtwnPoints = recallDuration / recallData.Count;
@@ -103,14 +105,13 @@ public class TracerRecall : MonoBehaviour {
 
 		//iterate through the list and move the character to each point in reverse sequential order
 		for(int i = recallData.Count - 1; i >= 0; i--) {
-			RecallData currentPos = GetData();				//get the current location
 			RecallData currentDataPoint = recallData[i];	//get the next point to got to
 
 			//Lerp the character position and rotation in the designated time
 			float t = 0;
 			while(t < secondsBtwnPoints) {
-				transform.position = Vector3.Lerp(currentPos.characterPosition, currentDataPoint.characterPosition, t / secondsBtwnPoints);
-				transform.rotation = Quaternion.Lerp(currentPos.characterRotation, currentDataPoint.characterRotation, t / secondsBtwnPoints);
+				transform.position = Vector3.Lerp(transform.position, currentDataPoint.characterPosition, t / secondsBtwnPoints);
+				transform.rotation = Quaternion.Lerp(transform.rotation, currentDataPoint.characterRotation, t / secondsBtwnPoints);
 				t += Time.deltaTime;
 				yield return null;
 			}
@@ -118,10 +119,10 @@ public class TracerRecall : MonoBehaviour {
 			recallData.RemoveAt(i);	//remove the newest point in the list
 		}
 
-		isRecalling = false;									//set recall flag to false
-		RecallAction(false);									//invoke the recallAction event with a value of false, telling other scripts that the Recall is ending
-		gameObject.layer = LayerMask.NameToLayer("Player");		//switch the layer back so that Tracer can no longer go through enemies
-		recallTimer = recallCooldown;							//set the recall timer to begin cooldown
+		isRecalling = false;													//set recall flag to false
+		RecallAction(false);													//invoke the recallAction event with a value of false, telling other scripts that the Recall is ending
+		gameObject.layer = LayerMask.NameToLayer("Player");						//switch the layer back so that Tracer can no longer go through enemies
+		recallTimer = recallCooldown;											//set the recall timer to begin cooldown
 	}
 
 	//used to move the camera rotation during the Recall since it is handled differently than the character position and rotation

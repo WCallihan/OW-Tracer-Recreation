@@ -10,10 +10,9 @@ public class TracerMovement : MonoBehaviour {
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float gravity = -9.81f;
     [SerializeField] private float jumpHeight = 3f;
-    [SerializeField] private AudioClip jumpSound;
 
     private CharacterController characterControler;
-    private AudioSource audioSource;
+	private TracerAudioManager tracerAudio;
 
     private Vector3 velocity;
     private bool isGrounded;
@@ -21,9 +20,9 @@ public class TracerMovement : MonoBehaviour {
 
     void Awake() {
         characterControler = GetComponent<CharacterController>();
-        audioSource = GetComponent<AudioSource>();
+        tracerAudio = GetComponent<TracerAudioManager>();
 
-		//add SetLock to the recallAction event
+		//add SetLock to the RecallAction event
 		TracerRecall.RecallAction += SetLock;
     }
 
@@ -54,8 +53,8 @@ public class TracerMovement : MonoBehaviour {
 		if(Input.GetButtonDown("Jump") && isGrounded) {
 			//jump upwards
 			velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-			//play jump sound effect
-			audioSource.PlayOneShot(jumpSound);
+			//use audio manager script to play jump sound effect
+			tracerAudio.Jump();
 		}
 
 		//simulate gravity
